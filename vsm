@@ -16,6 +16,7 @@ import yaml
 import ast
 import time
 from ipc.loader import load_plugin, LoaderError
+import os
 
 LOGIC_REPLACE = {'||': 'or',
                  '&&': 'and',
@@ -25,32 +26,46 @@ LOGIC_REPLACE = {'||': 'or',
 KEYWORDS = ['condition', 'emit']
 
 start_time_ms = 0
+logger = None
 
-class Log(object):
+class Logger(object):
     '''
         Utility class for logging messages
     '''
 
-    @staticmethod
-    def i(msg, timestamp=False):
+    def __init__(self, pipeout_fd):
+        self.pipeout_fd = pipeout_fd
+
+    def i(self, msg, timestamp=True):
         '''
             Log an informative (non-error) message
         '''
-        print(Log.__prepend_timestamp(msg, timestamp))
+        os.write(self.pipeout_fd, self.__prepend_timestamp(msg, timestamp))
 
-    @staticmethod
-    def e(msg, timestamp=False):
+    def e(self, msg, timestamp=True):
         '''
             Log an error
         '''
-        print(Log.__prepend_timestamp(msg, timestamp), file=sys.stderr)
+        os.write(self.pipeout_fd, self.__prepend_timestamp(msg, timestamp))
 
-    @staticmethod
-    def __prepend_timestamp(msg, timestamp):
-        if(not timestamp):
-            return msg
+    def signal(self, signal, value):
+        '''
+            Log a signal emission
+        '''
+        # NOTE: the "[SIGNUM]" field is a temporary placeholder for the signal
+        # ID
+        msg_final = '{},{},[SIGNUM],{}\n'.format(get_runtime(), signal,
+                repr(value))
 
-        return '{}: {}'.format(get_runtime(), msg)
+        os.write(self.pipeout_fd, msg_final.encode('UTF-8'))
+
+    def __prepend_timestamp(self, msg, timestamp):
+        msg_final = msg + '\n'
+
+        if timestamp:
+            msg_final = '{}: {}\n'.format(get_runtime(), msg)
+
+        return msg_final.encode('UTF-8')
 
 class State(object):
     '''
@@ -100,7 +115,7 @@ class State(object):
                     action = ast.parse(action).body[0]
 
                 else:
-                    Log.e("Unhandled keyword {}".format(word))
+                    logger.e("Unhandled keyword {}".format(word))
 
             ifnode = ast.If(condition.value, [action], [])
             ast_module = ast.Module([ifnode])
@@ -153,7 +168,7 @@ class State(object):
 
 
 def send(signal, value):
-    Log.i('{} = {}'.format(signal, value))
+    logger.signal(signal, value)
 
 def emit(signal, value):
     send(signal, value)
@@ -183,6 +198,13 @@ def process(state, signal, value):
 
     state.got_signal(signal, value)
 
+def log_processor(pipein_fd):
+    pipein = os.fdopen(pipein_fd)
+
+    for line in pipein:
+        sys.stdout.write(line)
+
+    pipein.close()
 
 def receive():
     '''
@@ -240,6 +262,16 @@ if __name__ == "__main__":
         except LoaderError as err:
             print(err)
             exit(1)
+
+    # fork separate process to handle logging so we don't block main process
+    pipein_fd, pipeout_fd = os.pipe()
+    if os.fork() == 0:
+        os.close(pipeout_fd)
+        log_processor(pipein_fd)
+    else:
+        os.close(pipein_fd)
+
+    logger = Logger(pipeout_fd)
 
     state = State(args.initial_state, args.rules)
     run(state)
