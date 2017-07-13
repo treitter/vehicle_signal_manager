@@ -196,36 +196,36 @@ class TestVSM(unittest.TestCase):
     def test_simple0(self):
         input_data = 'transmission.gear = "reverse"'
         expected_output = '''
-transmission.gear,9,'reverse'
+transmission.gear,5009,'reverse'
 State = {
 transmission.gear = reverse
 }
 condition: (transmission.gear == 'reverse') => True
-car.backup,3,'True'
+car.backup,5003,'True'
 State = {
 car.backup = True
 transmission.gear = reverse
 }
-transmission.gear,9,'"reverse"'
-car.backup,3,'True'
+transmission.gear,5009,'"reverse"'
+car.backup,5003,'True'
         '''
         self.run_vsm('simple0', input_data, expected_output.strip() + '\n')
 
     def test_simple0_delayed(self):
         input_data = 'transmission.gear = "reverse"'
         expected_output = '''
-transmission.gear,9,'reverse'
+transmission.gear,5009,'reverse'
 State = {
 transmission.gear = reverse
 }
 condition: (transmission.gear == 'reverse') => True
-car.backup,3,'True'
+car.backup,5003,'True'
 State = {
 car.backup = True
 transmission.gear = reverse
 }
-transmission.gear,9,'"reverse"'
-car.backup,3,'True'
+transmission.gear,5009,'"reverse"'
+car.backup,5003,'True'
         '''
         self.run_vsm('simple0_delay', input_data, expected_output.strip() + '\n')
 
@@ -236,12 +236,12 @@ car.backup,3,'True'
 
         input_data = 'phone.call = "inactive"'
         expected_output = '''
-phone.call,7,'inactive'
+phone.call,5007,'inactive'
 State = {
 phone.call = inactive
 }
 condition: (phone.call == 'active') => False
-phone.call,7,'"inactive"'
+phone.call,5007,'"inactive"'
         '''
         self.run_vsm('simple0', input_data, expected_output.strip() + '\n',
                 send_quit=True)
@@ -249,20 +249,20 @@ phone.call,7,'"inactive"'
     def test_simple2_initial(self):
         input_data = 'damage = True'
         expected_output = '''
-damage,5,True
+damage,5005,True
 State = {
 damage = True
 moving = False
 }
 condition: (moving != True and damage == True) => True
-car.stop,4,'True'
+car.stop,5004,'True'
 State = {
 car.stop = True
 damage = True
 moving = False
 }
-damage,5,'True'
-car.stop,4,'True'
+damage,5005,'True'
+car.stop,5004,'True'
         '''
         self.run_vsm('simple2', input_data, expected_output.strip() + '\n')
 
@@ -273,11 +273,11 @@ car.stop,4,'True'
 
         input_data = 'moving = False'
         expected_output = '''
-moving,6,False
+moving,5006,False
 State = {
 moving = False
 }
-moving,6,'False'
+moving,5006,'False'
         '''
         self.run_vsm('simple2', input_data, expected_output.strip() + '\n',
                 send_quit=True)
@@ -289,19 +289,19 @@ moving,6,'False'
 
         input_data = 'moving = True\ndamage = True'
         expected_output = '''
-moving,6,True
+moving,5006,True
 State = {
 moving = True
 }
 condition: (moving != True and damage == True) => False
-damage,5,True
+damage,5005,True
 State = {
 damage = True
 moving = True
 }
 condition: (moving != True and damage == True) => False
-moving,6,'True'
-damage,5,'True'
+moving,5006,'True'
+damage,5005,'True'
         '''
         self.run_vsm('simple2', input_data, expected_output.strip() + '\n',
                 send_quit=True)
@@ -309,25 +309,25 @@ damage,5,'True'
     def test_simple2_multiple_signals(self):
         input_data = 'moving = False\ndamage = True'
         expected_output = '''
-moving,6,False
+moving,5006,False
 State = {
 moving = False
 }
-damage,5,True
+damage,5005,True
 State = {
 damage = True
 moving = False
 }
 condition: (moving != True and damage == True) => True
-car.stop,4,'True'
+car.stop,5004,'True'
 State = {
 car.stop = True
 damage = True
 moving = False
 }
-moving,6,'False'
-damage,5,'True'
-car.stop,4,'True'
+moving,5006,'False'
+damage,5005,'True'
+car.stop,5004,'True'
         '''
         self.run_vsm('simple2', input_data, expected_output.strip() + '\n', False)
 
@@ -342,17 +342,17 @@ car.stop,4,'True'
 
         input_data = ''
         expected_output = '''
-phone.call,7,'active'
+phone.call,5007,'active'
 State = {
 phone.call = active
 }
-car.stop,4,'True'
+car.stop,5004,'True'
 State = {
 car.stop = True
 phone.call = active
 }
-phone.call,7,'active'
-car.stop,4,'True'
+phone.call,5007,'active'
+car.stop,5004,'True'
         '''
         self.run_vsm('simple0', input_data, expected_output.strip() + '\n',
                 replay_case='simple0-replay', wait_time_ms=5000)
@@ -365,11 +365,11 @@ car.stop,4,'True'
 
         input_data = ''
         expected_output = '''
-lock.state,13,'true'
+lock.state,5013,'true'
 State = {
 lock.state = true
 }
-lock.state,13,'true'
+lock.state,5013,'true'
         '''
         self.run_vsm('unconditional_emit', input_data,
                 expected_output.strip() + '\n',
@@ -378,25 +378,25 @@ lock.state,13,'true'
     def test_simple3_xor_condition(self):
         input_data = 'phone.call = "active"\nspeed.value = 5.0'
         expected_output = '''
-phone.call,7,'active'
+phone.call,5007,'active'
 State = {
 phone.call = active
 }
-speed.value,8,5.0
+speed.value,5008,5.0
 State = {
 phone.call = active
 speed.value = 5.0
 }
 condition: (phone.call == 'active' ^^ speed.value > 50.90) => True
-car.stop,4,'True'
+car.stop,5004,'True'
 State = {
 car.stop = True
 phone.call = active
 speed.value = 5.0
 }
-phone.call,7,'"active"'
-speed.value,8,'5.0'
-car.stop,4,'True'
+phone.call,5007,'"active"'
+speed.value,5008,'5.0'
+car.stop,5004,'True'
         '''
         self.run_vsm('simple3', input_data, expected_output.strip() + '\n')
 
@@ -411,26 +411,26 @@ car.stop,4,'True'
                 'transmission.gear = "reverse"\n' \
                 'camera.backup.active = True'
         expected_output = '''
-transmission.gear,9,'reverse'
+transmission.gear,5009,'reverse'
 State = {
 transmission.gear = reverse
 }
-transmission.gear,9,'forward'
+transmission.gear,5009,'forward'
 State = {
 transmission.gear = forward
 }
 condition: (transmission.gear == 'reverse') => False
-transmission.gear,9,'reverse'
+transmission.gear,5009,'reverse'
 State = {
 transmission.gear = reverse
 }
 condition: (transmission.gear == 'reverse') => True
-lights.external.backup,14,'True'
+lights.external.backup,5014,'True'
 State = {
 lights.external.backup = True
 transmission.gear = reverse
 }
-camera.backup.active,15,True
+camera.backup.active,5015,True
 State = {
 camera.backup.active = True
 lights.external.backup = True
@@ -438,11 +438,11 @@ transmission.gear = reverse
 }
 parent condition: transmission.gear == reverse
 condition: (camera.backup.active == True) => True
-transmission.gear,9,'reverse'
-transmission.gear,9,'"forward"'
-transmission.gear,9,'"reverse"'
-lights.external.backup,14,'True'
-camera.backup.active,15,'True'
+transmission.gear,5009,'reverse'
+transmission.gear,5009,'"forward"'
+transmission.gear,5009,'"reverse"'
+lights.external.backup,5014,'True'
+camera.backup.active,5015,'True'
         '''
         self.run_vsm('monitored_condition', input_data,
                 expected_output.strip() + '\n', wait_time_ms=2500)
@@ -457,30 +457,30 @@ camera.backup.active,15,'True'
         input_data = 'transmission.gear = "forward"\n' \
             'transmission.gear = "reverse"'
         expected_output = '''
-transmission.gear,9,'reverse'
+transmission.gear,5009,'reverse'
 State = {
 transmission.gear = reverse
 }
-transmission.gear,9,'forward'
+transmission.gear,5009,'forward'
 State = {
 transmission.gear = forward
 }
 condition: (transmission.gear == 'reverse') => False
-transmission.gear,9,'reverse'
+transmission.gear,5009,'reverse'
 State = {
 transmission.gear = reverse
 }
 condition: (transmission.gear == 'reverse') => True
-lights.external.backup,14,'True'
+lights.external.backup,5014,'True'
 State = {
 lights.external.backup = True
 transmission.gear = reverse
 }
 condition not met by 'start' time of 1000ms
-transmission.gear,9,'reverse'
-transmission.gear,9,'"forward"'
-transmission.gear,9,'"reverse"'
-lights.external.backup,14,'True'
+transmission.gear,5009,'reverse'
+transmission.gear,5009,'"forward"'
+transmission.gear,5009,'"reverse"'
+lights.external.backup,5014,'True'
         '''
         self.run_vsm('monitored_condition', input_data,
                 expected_output.strip() + '\n', wait_time_ms=1500)
@@ -496,36 +496,36 @@ lights.external.backup,14,'True'
             'transmission.gear = "reverse" \n' \
             'transmission.gear = "forward"'
         expected_output = '''
-transmission.gear,9,'reverse'
+transmission.gear,5009,'reverse'
 State = {
 transmission.gear = reverse
 }
-transmission.gear,9,'forward'
+transmission.gear,5009,'forward'
 State = {
 transmission.gear = forward
 }
 condition: (transmission.gear == 'reverse') => False
-transmission.gear,9,'reverse'
+transmission.gear,5009,'reverse'
 State = {
 transmission.gear = reverse
 }
 condition: (transmission.gear == 'reverse') => True
-lights.external.backup,14,'True'
+lights.external.backup,5014,'True'
 State = {
 lights.external.backup = True
 transmission.gear = reverse
 }
-transmission.gear,9,'forward'
+transmission.gear,5009,'forward'
 State = {
 lights.external.backup = True
 transmission.gear = forward
 }
 condition: (transmission.gear == 'reverse') => False
-transmission.gear,9,'reverse'
-transmission.gear,9,'"forward"'
-transmission.gear,9,'"reverse"'
-lights.external.backup,14,'True'
-transmission.gear,9,'"forward"'
+transmission.gear,5009,'reverse'
+transmission.gear,5009,'"forward"'
+transmission.gear,5009,'"reverse"'
+lights.external.backup,5014,'True'
+transmission.gear,5009,'"forward"'
         '''
         self.run_vsm('monitored_condition', input_data,
                 expected_output.strip() + '\n', wait_time_ms=1500)
@@ -614,34 +614,34 @@ b,5041,'true'
         input_data = 'transmission.gear = "reverse"\n'\
                 'wipers = True'
         expected_output = '''
-transmission.gear,9,'reverse'
+transmission.gear,5009,'reverse'
 State = {
 transmission.gear = reverse
 }
 condition: (transmission.gear == 'reverse') => True
-reverse,16,'True'
+reverse,5016,'True'
 State = {
 reverse = True
 transmission.gear = reverse
 }
-wipers,17,True
+wipers,5017,True
 State = {
 reverse = True
 transmission.gear = reverse
 wipers = True
 }
 condition: (wipers == True) => True
-lights,18,'on'
+lights,5018,'on'
 State = {
 lights = on
 reverse = True
 transmission.gear = reverse
 wipers = True
 }
-transmission.gear,9,'"reverse"'
-reverse,16,'True'
-wipers,17,'True'
-lights,18,'on'
+transmission.gear,5009,'"reverse"'
+reverse,5016,'True'
+wipers,5017,'True'
+lights,5018,'on'
         '''
         self.run_vsm('parallel', input_data, expected_output.strip() + '\n',
                 False)
@@ -650,34 +650,34 @@ lights,18,'on'
         input_data = 'transmission.gear = "park"\n' \
                 'ignition = True'
         expected_output = '''
-transmission.gear,9,'park'
+transmission.gear,5009,'park'
 State = {
 transmission.gear = park
 }
 condition: (transmission.gear == 'park') => True
-parked,11,'True'
+parked,5011,'True'
 State = {
 parked = True
 transmission.gear = park
 }
-ignition,10,True
+ignition,5010,True
 State = {
 ignition = True
 parked = True
 transmission.gear = park
 }
 condition: (ignition == True) => True
-ignited,12,'True'
+ignited,5012,'True'
 State = {
 ignited = True
 ignition = True
 parked = True
 transmission.gear = park
 }
-transmission.gear,9,'"park"'
-parked,11,'True'
-ignition,10,'True'
-ignited,12,'True'
+transmission.gear,5009,'"park"'
+parked,5011,'True'
+ignition,5010,'True'
+ignited,5012,'True'
         '''
         self.run_vsm('sequence', input_data, expected_output.strip() + '\n')
 
@@ -686,53 +686,53 @@ ignited,12,'True'
                 'transmission.gear = "park"\n' \
                 'ignition = True'
         expected_output = '''
-ignition,10,True
+ignition,5010,True
 State = {
 ignition = True
 }
 changed value for signal 'ignition' ignored because prior conditions in its sequence block have not been met
-transmission.gear,9,'park'
+transmission.gear,5009,'park'
 State = {
 ignition = True
 transmission.gear = park
 }
 condition: (transmission.gear == 'park') => True
-parked,11,'True'
+parked,5011,'True'
 State = {
 ignition = True
 parked = True
 transmission.gear = park
 }
-ignition,10,True
+ignition,5010,True
 State = {
 ignition = True
 parked = True
 transmission.gear = park
 }
 condition: (ignition == True) => True
-ignited,12,'True'
+ignited,5012,'True'
 State = {
 ignited = True
 ignition = True
 parked = True
 transmission.gear = park
 }
-ignition,10,'True'
-transmission.gear,9,'"park"'
-parked,11,'True'
-ignition,10,'True'
-ignited,12,'True'
+ignition,5010,'True'
+transmission.gear,5009,'"park"'
+parked,5011,'True'
+ignition,5010,'True'
+ignited,5012,'True'
         '''
         self.run_vsm('sequence', input_data, expected_output.strip() + '\n')
 
     def test_unconditional_emit(self):
         input_data = ''
         expected_output = '''
-lock.state,13,'True'
+lock.state,5013,'True'
 State = {
 lock.state = True
 }
-lock.state,13,'True'
+lock.state,5013,'True'
         '''
         self.run_vsm('unconditional_emit', input_data,
                 expected_output.strip() + '\n')
@@ -745,13 +745,13 @@ State = {
 wipers.front.on = True
 }
 condition: (wipers.front.on == True) => True
-lights.external.headlights,19,'True'
+lights.external.headlights,5019,'True'
 State = {
 lights.external.headlights = True
 wipers.front.on = True
 }
 wipers.front.on,5020,'True'
-lights.external.headlights,19,'True'
+lights.external.headlights,5019,'True'
         '''
         # NOTE: ideally, this would ensure the delay in output but, for
         # simplicity, that is handled in a manual test case. This simply ensures
@@ -780,7 +780,7 @@ State = {
 flux_capacitor.energy_generated = 1.1
 lights.external.time_travel_imminent = True
 }
-speed.value,8,140
+speed.value,5008,140
 State = {
 flux_capacitor.energy_generated = 1.1
 lights.external.time_travel_imminent = True
@@ -807,7 +807,7 @@ speed.value = 140
 flux_capacitor.energy_generated,5030,'1.1'
 lights.external.time_travel_imminent,5032,'True'
 lights.external.time_travel_imminent,5032,'True'
-speed.value,8,'140'
+speed.value,5008,'140'
 lights.internal.time_travel_imminent,5031,'True'
 lights.internal.time_travel_imminent,5031,'True'
         '''
@@ -823,14 +823,14 @@ lights.internal.time_travel_imminent,5031,'True'
 
         input_data = 'horn = true'
         expected_output = '''
-horn,20,True
+horn,5020,True
 State = {
 horn = True
 }
 parent condition: parked == (unset)
 parent condition: car.stop == (unset)
 condition: (horn == True) => True
-horn,20,'true'
+horn,5020,'true'
         '''
         self.run_vsm('nested_simple', input_data,
                 expected_output.strip() + '\n', wait_time_ms=1500)
@@ -843,13 +843,13 @@ horn,20,'true'
 
         input_data = 'parked = true'
         expected_output = '''
-parked,11,True
+parked,5011,True
 State = {
 parked = True
 }
 condition not met by 'start' time of 0ms
 condition: (parked == True) => True
-parked,11,'true'
+parked,5011,'true'
         '''
         self.run_vsm('start_0', input_data,
                 expected_output.strip() + '\n', wait_time_ms=1200)
@@ -863,20 +863,20 @@ parked,11,'true'
         input_data = 'horn = true\n' \
                 'parked = true'
         expected_output = '''
-horn,20,True
+horn,5020,True
 State = {
 horn = True
 }
 parent condition: parked == (unset)
 condition: (horn == True) => True
-parked,11,True
+parked,5011,True
 State = {
 horn = True
 parked = True
 }
 condition: (parked == True) => True
-horn,20,'true'
-parked,11,'true'
+horn,5020,'true'
+parked,5011,'true'
         '''
         self.run_vsm('start_0', input_data,
                 expected_output.strip() + '\n', wait_time_ms=1200)
