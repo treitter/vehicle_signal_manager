@@ -88,7 +88,7 @@ class TestVSM(unittest.TestCase):
 
     def _receive(self):
         if TestVSM.ipc_module == 'zeromq':
-            return self._zmq_socket.recv_pyobj()
+            return [self._zmq_socket.recv_pyobj()]
 
         raise NotImplemented
 
@@ -103,9 +103,11 @@ class TestVSM(unittest.TestCase):
             # for more information)
             while True:
                 try:
-                    sig, val = self._receive()
-                    process_output += _signal_format_safe(signal_to_num, sig,
-                            val)
+                    results = self._receive()
+                    for result in results:
+                        sig, val = result
+                        process_output += _signal_format_safe(signal_to_num,
+                                sig, val)
                 except zmq.error.Again:
                     # timed out on receive (which happens when we've received
                     # all output)

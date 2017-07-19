@@ -918,25 +918,30 @@ def receive():
         elif "=" in line:
             line = line.split("=")
             show(line[0], line[1], SIGNAL_PREFIX_INCOMING)
-            return (line[0], line[1])
+            return [(line[0], line[1])]
         else:
             show(line, None, SIGNAL_PREFIX_INCOMING)
-            return (line, None)
+            return [(line, None)]
 
 def run(state):
     try:
         while True:
-            message = receive()
-            if message == None:
+            messages = receive()
+            if messages == None:
                 exit(0)
 
-            signal, value = message
-            # 'quit' signal to close VSM endpoint.
-            if signal == 'quit':
-                send('', '')
-                break
+            if len(messages) == 0:
+                continue
 
-            process(state, signal, value)
+            for message in messages:
+                signal, value = message
+
+                # 'quit' signal to close VSM endpoint.
+                if signal == 'quit':
+                    send('', '')
+                    break
+
+                process(state, signal, value)
     except KeyboardInterrupt:
         exit(0)
 

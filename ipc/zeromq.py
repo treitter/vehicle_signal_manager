@@ -16,7 +16,7 @@ socket = None
 #           It takes signal ID and value as arguments.
 #
 # receive - Function to receive signal.
-#           It returns the received message as a tuple of (ID, Value).
+#           It returns the received message as a [(ID, Value)].
 
 def connect():
     global socket
@@ -35,5 +35,5 @@ def send(signal, value):
 
 
 def receive():
-    # Receive Python object: (Signal ID, Signal Value).
-    return socket.recv_pyobj()
+    # Receive Python object as (Signal ID, Signal Value) and wrap it in a list.
+    return [socket.recv_pyobj()]
