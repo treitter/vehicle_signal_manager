@@ -59,11 +59,19 @@ class TestVSM(unittest.TestCase):
     ipc_module = None
 
     def setUp(self):
-        if TestVSM.ipc_module == 'zeromq':
+        if False:
+            pass
+        elif TestVSM.ipc_module == 'vsi':
+            self._init_vsi()
+        elif TestVSM.ipc_module == 'zeromq':
             self._init_zeromq()
 
     def tearDown(self):
-        if TestVSM.ipc_module == 'zeromq':
+        if False:
+            pass
+        elif TestVSM.ipc_module == 'vsi':
+            self._tear_down_vsi()
+        elif TestVSM.ipc_module == 'zeromq':
             self._tear_down_zeromq()
 
     def _init_zeromq(self):
@@ -79,21 +87,55 @@ class TestVSM(unittest.TestCase):
     def _tear_down_zeromq(self):
         self._zmq_socket.close()
 
+    def _init_vsi(self):
+        import vsi_py as vsi
+        import ipc.vsi
+        self._vsi = vsi
+        self._ipc_vsi = ipc.vsi
+
+    def _tear_down_vsi(self):
+        # TODO: remove the signal group?
+        pass
+
     def _send(self, signal, value):
-        if TestVSM.ipc_module == 'zeromq':
+        if False:
+            pass
+        elif TestVSM.ipc_module == 'vsi':
+            return self._ipc_vsi.send(signal, value)
+        elif TestVSM.ipc_module == 'zeromq':
             self._zmq_socket.send_pyobj((signal, value))
             return
 
         raise NotImplemented
 
     def _receive(self):
-        if TestVSM.ipc_module == 'zeromq':
+        if False:
+            pass
+        elif TestVSM.ipc_module == 'vsi':
+            return self._ipc_vsi.receive()
+        elif TestVSM.ipc_module == 'zeromq':
             return [self._zmq_socket.recv_pyobj()]
 
         raise NotImplemented
 
     def _receive_all(self, signal_to_num):
-        if TestVSM.ipc_module == 'zeromq':
+        if False:
+            pass
+        elif TestVSM.ipc_module == 'vsi':
+            process_output = ''
+
+            # keep receiving output, one line at a time, until empty
+            while True:
+                results = self._receive()
+                if not results or len(results) < 1:
+                    break
+                for result in results:
+                    sig, val = result
+                    process_output += _signal_format_safe(signal_to_num, sig,
+                            val)
+
+            return process_output
+        elif TestVSM.ipc_module == 'zeromq':
             import zmq
 
             process_output = ''
@@ -116,6 +158,14 @@ class TestVSM(unittest.TestCase):
             return process_output
 
         raise NotImplemented
+
+    def _set_signal_number_map(self, signal_to_num):
+        if False:
+            pass
+        elif TestVSM.ipc_module == 'vsi':
+            self._ipc_vsi.set_signal_number_map(signal_to_num)
+        elif TestVSM.ipc_module == 'zeromq':
+            pass
 
     def run_vsm(self, name, input_data, expected_output,
                 use_initial=True, send_quit=False, replay_case=None,
@@ -146,8 +196,15 @@ class TestVSM(unittest.TestCase):
         if TestVSM.ipc_module:
             cmd += [ '--ipc-module={}'.format(TestVSM.ipc_module) ]
 
-        if TestVSM.ipc_module == 'zeromq':
+        # TODO: turn off VSI tests by default; have instructions for setting
+        # PYTHONPATH, LD_LIBRARY_PATH, etc. to point to VSI checkout (which also
+        # needs to be built) so the tests don't break by default
+
+        # TODO: ideally, encapsulate this and all the other references directly
+        # to "vsi" or "zeromq"
+        if TestVSM.ipc_module in ("vsi", "zeromq"):
             signal_to_num, _ = vsmlib.utils.parse_signal_num_file(sig_num_path)
+            self._set_signal_number_map(signal_to_num)
 
             process = Popen(cmd)
 
@@ -211,8 +268,11 @@ transmission.gear = reverse
 transmission.gear,5009,'"reverse"'
 car.backup,5003,'True'
         '''
+
         self.run_vsm('simple0', input_data, expected_output.strip() + '\n')
 
+    # FIXME: uncomment
+    """
     def test_simple0_delayed(self):
         input_data = 'transmission.gear = "reverse"'
         expected_output = '''
@@ -882,11 +942,21 @@ parked,5011,'true'
         '''
         self.run_vsm('start_0', input_data,
                 expected_output.strip() + '\n', wait_time_ms=1200)
+    """
 
 if __name__ == '__main__':
+    # FIXME: uncomment
+    """
     suite = unittest.TestLoader().loadTestsFromTestCase(TestVSM)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
     TestVSM.ipc_module = 'zeromq'
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestVSM)
+    unittest.TextTestRunner(verbosity=2).run(suite)
+    """
+
+    # TODO: set up VSI DB by importing our signal file (or do this in VSM?)
+
+    TestVSM.ipc_module = 'vsi'
     suite = unittest.TestLoader().loadTestsFromTestCase(TestVSM)
     unittest.TextTestRunner(verbosity=2).run(suite)

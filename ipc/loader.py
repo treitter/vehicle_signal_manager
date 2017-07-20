@@ -51,5 +51,11 @@ def load_plugin(modulename):
     else:
         raise LoaderError("error: missing 'send' method")
 
+    if _method_exists(caller_module, 'set_signal_number_map') and \
+       _method_exists(module, 'set_signal_number_map'):
+        caller_module.set_signal_number_map = module.set_signal_number_map
+    else:
+        raise LoaderError("error: missing 'set_signal_number_map' method")
+
     if _method_exists(module, 'connect'):
         module.connect()

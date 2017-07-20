@@ -37,3 +37,7 @@ def send(signal, value):
 def receive():
     # Receive Python object as (Signal ID, Signal Value) and wrap it in a list.
     return [socket.recv_pyobj()]
+
+
+def set_signal_number_map(new_signal_to_number):
+    pass

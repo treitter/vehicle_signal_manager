@@ -829,6 +829,11 @@ def show(signal, value, indicator):
 def send(signal, value):
     show(signal, value, SIGNAL_PREFIX_OUTGOING)
 
+def set_signal_number_map(signal_number_map):
+    # nothing to do for the default implementation; this is overridden by IPC
+    # modules
+    pass
+
 # this includes an unused state parameter so it matches the signature of
 # delayed_got_signal() for log replay purposes
 def delayed_emit(signal, value, delay, state=None):
@@ -927,10 +932,20 @@ def run(state):
     try:
         while True:
             messages = receive()
+
+            # FIXME: ZeroMQ depends on this; how can we make it work with the
+            # new code below? Always send send_quit for the tests?
+            """
             if messages == None:
                 exit(0)
 
             if len(messages) == 0:
+                continue
+            """
+
+            # FIXME: seems like we should be doing this. And maybe always doing
+            # send_quit?
+            if messages == None or len(messages) == 0:
                 continue
 
             for message in messages:
@@ -1007,12 +1022,15 @@ if __name__ == "__main__":
 
         if args.ipc_module:
             # Load IPC plugin.
-            # Override the receive/send functions with the plugin version.
+            # Override the send, receive, and other functions with the plugin
+            # versions. See the loader module for more details.
             try:
                 load_plugin('ipc.{}'.format(args.ipc_module))
             except LoaderError as err:
                 logger.e(err)
                 exit(1)
+
+        set_signal_number_map(signal_to_num)
 
         config_tree = TreeNode(NODE_ROOT, None)
 
